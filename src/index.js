@@ -11,6 +11,7 @@ const perPage = 40;
 let pageNumber = 1;
 let inputtedValueCompare = '';
 let counter = 1;
+let lightBoxInstance = null;
 
 loadMoreBtn.classList.add('hidden');
 
@@ -32,10 +33,7 @@ const handleSuccess = function (data) {
     if (inputField.value !== inputtedValueCompare) {
       Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
     }
-    let lightBoxInstance = null;
     data.hits.forEach(hit => {
-      totalHitsValue = data.totalHits;
-
       divGallery.insertAdjacentHTML(
         'beforeend',
         `<div class="photo-card">
@@ -71,6 +69,9 @@ const handleSuccess = function (data) {
         );
       }
     });
+    if (lightBoxInstance) {
+      lightBoxInstance.destroy();
+    }
     lightBoxInstance = new simpleLightBox('.photo-card a', {});
   } else {
     Notiflix.Notify.info(
