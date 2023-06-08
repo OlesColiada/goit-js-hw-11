@@ -1,39 +1,31 @@
 import Notiflix from 'notiflix';
 import simpleLightBox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import axios from 'axios';
+import fetchData from './js/api.js';
 
 const searchForm = document.querySelector('#search-form');
 const inputField = document.querySelector('input[type="text"]');
 const divGallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
-const perPage = 40;
 let pageNumber = 1;
 let inputtedValueCompare = '';
 let counter = 1;
 let lightBoxInstance = null;
+let totalHitsValue = 0;
 
 loadMoreBtn.classList.add('hidden');
-
-//Фетч(axios) на адрес АPI
-const fetchData = async function (inputtedValue, pageNumber) {
-  try {
-    const resp = await axios.get(
-      `https://pixabay.com/api/?key=37016311-3dc5b9efa70d4a338f2adabe8&q=${inputtedValue}&image_type=photo&orientation='horizontal'&safesearch='true'&page=${pageNumber}&per_page=${perPage}`
-    );
-    return resp.data;
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 // Результат позитивний, тоді виконати
 const handleSuccess = function (data) {
   if (data.totalHits !== 0) {
+    totalHitsValue = data.totalHits;
     if (inputField.value !== inputtedValueCompare) {
       Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
     }
     data.hits.forEach(hit => {
+        if(counter <= totalHitsValue){
+        console.log(counter)
+        console.log(totalHitsValue)
       divGallery.insertAdjacentHTML(
         'beforeend',
         `<div class="photo-card">
@@ -60,7 +52,7 @@ const handleSuccess = function (data) {
       );
 
       counter += 1;
-      loadMoreBtn.classList.remove('hidden');
+      loadMoreBtn.classList.remove('hidden');}
 
       if (counter > data.totalHits) {
         loadMoreBtn.classList.add('hidden');
@@ -73,6 +65,14 @@ const handleSuccess = function (data) {
       lightBoxInstance.destroy();
     }
     lightBoxInstance = new simpleLightBox('.photo-card a', {});
+
+    const { height: cardHeight } = document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
   } else {
     Notiflix.Notify.info(
       'Sorry, there are no images matching your search query. Please try again.'
@@ -113,8 +113,7 @@ const loadMore = function (e) {
     loadMoreBtn.classList.add('hidden');
     pageNumber += 1;
     fetchData(inputtedValue, pageNumber).then(handleSuccess);
-  }
-};
+}};
 
 //infifnity scroll
 const handleScroll = function () {
